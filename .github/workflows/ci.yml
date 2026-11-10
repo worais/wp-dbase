@@ -23,7 +23,7 @@ jobs:
           php-version: '8.3'
           coverage: none
           tools: cs2pr
-      - uses: ramsey/composer-install@v3
+      - uses: ramsey/composer-install@v4
       - run: composer lint
       - run: vendor/bin/phpcs -q --report=checkstyle | cs2pr
       - run: composer stan -- --error-format=github
@@ -41,7 +41,7 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           coverage: ${{ matrix.php == '8.3' && 'pcov' || 'none' }}
-      - uses: ramsey/composer-install@v3
+      - uses: ramsey/composer-install@v4
       - name: Run tests
         if: matrix.php != '8.3'
         run: composer test
@@ -59,7 +59,7 @@ jobs:
         with:
           php-version: '8.3'
           coverage: pcov
-      - uses: ramsey/composer-install@v3
+      - uses: ramsey/composer-install@v4
       - run: vendor/bin/infection --threads=max --no-progress --logger-github
 
   plugin-check:
