@@ -1,0 +1,31 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check that the tag matches the plugin version
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          header="$(sed -n 's/^ \* Version: *//p' wp-dbase.php)"
+          stable="$(sed -n 's/^Stable tag: *//p' readme.txt)"
+          constant="$(sed -n "s/.*const VERSION = '\(.*\)';/\1/p" src/Plugin.php)"
+          echo "tag=$tag header=$header stable=$stable constant=$constant"
+          test "$tag" = "$header" && test "$tag" = "$stable" && test "$tag" = "$constant"
+          grep -q "## \[$tag\]" CHANGELOG.md
+
+      - run: bin/build.sh
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: build/wp-dbase.zip
+          generate_release_notes: true

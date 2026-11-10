@@ -1,0 +1,27 @@
+name: Bug report
+description: Something does not work as documented.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: "1. Open Tools → Database\n2. …"
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      placeholder: WP DBase 0.1.0 · WordPress 7.1 · PHP 8.3 · MySQL 8.0
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: "**Security issue?** Please report it privately — see SECURITY.md."
