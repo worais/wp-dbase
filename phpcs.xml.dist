@@ -10,7 +10,6 @@
 	<exclude-pattern>/vendor/*</exclude-pattern>
 
 	<arg name="extensions" value="php"/>
-	<arg name="cache" value=".phpcs-cache"/>
 	<arg name="parallel" value="8"/>
 	<arg value="sp"/>
 	<arg name="colors"/>

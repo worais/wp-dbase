@@ -28,8 +28,10 @@ final class Query {
 	 * @throws RuntimeException When wpdb refuses the query (placeholder mismatch).
 	 */
 	public static function prepare( wpdb $wpdb, string $query, mixed ...$args ): string {
-		// Identifiers are dynamic by design (see Identifier), so the query is not a literal-string.
-		// @phpstan-ignore argument.type
+		/*
+		 * Identifiers are dynamic by design (see Identifier), so the query is not a literal-string.
+		 * @phpstan-ignore argument.type
+		 */
 		$prepared = $wpdb->prepare( $query, ...$args ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- the single, documented entry point for identifier-quoted dynamic SQL.
 
 		if ( ! is_string( $prepared ) || '' === $prepared ) {
