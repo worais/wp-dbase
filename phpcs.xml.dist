@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<ruleset name="WP DBase">
+	<description>WordPress Coding Standards plus PHP/WordPress version compatibility.</description>
+
+	<file>./wp-dbase.php</file>
+	<file>./uninstall.php</file>
+	<file>./src</file>
+	<file>./tests</file>
+
+	<exclude-pattern>/vendor/*</exclude-pattern>
+
+	<arg name="extensions" value="php"/>
+	<arg name="cache" value=".phpcs-cache"/>
+	<arg name="parallel" value="8"/>
+	<arg value="sp"/>
+	<arg name="colors"/>
+
+	<config name="minimum_wp_version" value="6.4"/>
+	<config name="testVersion" value="8.1-"/>
+
+	<rule ref="WordPress">
+		<!-- PSR-4 file names (Foo.php) instead of class-foo.php: the autoloader needs them. -->
+		<exclude name="WordPress.Files.FileName"/>
+	</rule>
+
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="wp-dbase"/>
+			</property>
+		</properties>
+	</rule>
+
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="wpdbase"/>
+				<element value="WPDBase"/>
+			</property>
+		</properties>
+	</rule>
+
+	<rule ref="PHPCompatibilityWP"/>
+
+	<!--
+	PHPCompatibility 9.x predates enums and flags `$this` / `self` inside them.
+	These files are enums; the rest of the code base keeps the sniffs.
+	-->
+	<rule ref="PHPCompatibility.Variables.ForbiddenThisUseContexts.OutsideObjectContext">
+		<exclude-pattern>/src/Security/SafetyMode\.php$</exclude-pattern>
+		<exclude-pattern>/src/Sql/StatementKind\.php$</exclude-pattern>
+	</rule>
+	<rule ref="PHPCompatibility.FunctionDeclarations.NewParamTypeDeclarations.SelfOutsideClassScopeFound">
+		<exclude-pattern>/src/Security/SafetyMode\.php$</exclude-pattern>
+	</rule>
+
+	<!--
+	Generic PHPDoc types (list<string>, WP_REST_Request<...>) are what PHPStan reads;
+	Squiz compares them to the native type literally and reports a mismatch.
+	-->
+	<rule ref="Squiz.Commenting.FunctionComment.IncorrectTypeHint">
+		<severity>0</severity>
+	</rule>
+
+	<!-- Tests use PHPUnit conventions (camelCase methods inherited from TestCase, etc.). -->
+	<rule ref="WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+	<rule ref="Squiz.Commenting">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+	<rule ref="Generic.Commenting.DocComment.MissingShort">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+</ruleset>

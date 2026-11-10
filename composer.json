@@ -1,0 +1,77 @@
+{
+    "name": "worais/wp-dbase",
+    "description": "A database manager that speaks WordPress: object view, SQL console with safety modes, and schema insight inside wp-admin.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "Morais Junior",
+            "homepage": "https://github.com/worais"
+        }
+    ],
+    "homepage": "https://github.com/worais/wp-dbase",
+    "support": {
+        "issues": "https://github.com/worais/wp-dbase/issues",
+        "source": "https://github.com/worais/wp-dbase"
+    },
+    "require": {
+        "php": ">=8.1"
+    },
+    "require-dev": {
+        "brain/monkey": "^2.6",
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+        "infection/infection": "^0.29",
+        "phpcompatibility/phpcompatibility-wp": "^2.1",
+        "phpstan/extension-installer": "^1.4",
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^10.5",
+        "szepeviktor/phpstan-wordpress": "^2.0",
+        "wp-coding-standards/wpcs": "^3.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "WPDBase\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WPDBase\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "infection/extension-installer": true,
+            "phpstan/extension-installer": true
+        },
+        "optimize-autoloader": true,
+        "platform": {
+            "php": "8.1.0"
+        },
+        "sort-packages": true
+    },
+    "scripts": {
+        "lint": "find src tests wp-dbase.php uninstall.php -name '*.php' -print0 | xargs -0 -n1 php -l > /dev/null",
+        "cs": "phpcs",
+        "cs:fix": "phpcbf",
+        "stan": "phpstan analyse --memory-limit=1G",
+        "test": "phpunit",
+        "test:coverage": "XDEBUG_MODE=coverage phpunit --coverage-text",
+        "mutate": "infection --threads=max --show-mutations",
+        "qa": [
+            "@lint",
+            "@cs",
+            "@stan",
+            "@test"
+        ]
+    },
+    "scripts-descriptions": {
+        "lint": "Check PHP syntax of every source file.",
+        "cs": "Check coding standards (WPCS + PHPCompatibilityWP).",
+        "cs:fix": "Fix what can be fixed automatically.",
+        "stan": "Run static analysis (PHPStan).",
+        "test": "Run the unit test suite.",
+        "mutate": "Run mutation testing (Infection).",
+        "qa": "Run every quality gate except mutation testing."
+    }
+}

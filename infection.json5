@@ -1,0 +1,30 @@
+{
+  "$schema": "vendor/infection/infection/resources/schema.json",
+  // The gate covers the pure core: classes with no WordPress or database calls.
+  // Adapters (REST, repositories, admin page) are exercised by integration tests.
+  "source": {
+    "directories": ["src"],
+    "excludes": [
+      "Admin",
+      "Audit",
+      "Rest",
+      "/^Plugin\\.php$/",
+      "/^Config\\.php$/",
+      "/Database\\/(DatabaseRegistry|HealthRepository|Query|RowRepository|SchemaRepository)\\.php$/",
+      "/ObjectView\\/ObjectAssembler\\.php$/",
+      "/Security\\/AccessGate\\.php$/",
+      "/Sql\\/QueryRunner\\.php$/"
+    ]
+  },
+  "timeout": 20,
+  "logs": {
+    "text": "infection.log",
+    "html": "infection.html",
+    "github": true
+  },
+  "mutators": {
+    "@default": true
+  },
+  "minMsi": 95,
+  "minCoveredMsi": 95
+}
