@@ -6,7 +6,7 @@
     "directories": ["src"],
     "excludes": [
       "Admin",
-      "Audit",
+      "/Audit\\/(AuditLog|AuditEntry)\\.php$/",
       "Rest",
       "/^Plugin\\.php$/",
       "/^Config\\.php$/",

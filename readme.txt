@@ -74,7 +74,7 @@ All settings are optional constants:
 
 `define( 'WPDBASE_MAX_ROWS', 1000 );` — rows returned per console statement.
 
-Filters for developers: `wpdbase_user_can_access`, `wpdbase_databases`, `wpdbase_capability`, `wpdbase_max_safety_mode`, `wpdbase_known_plugin_tables`. See the README on GitHub for examples.
+Filters for developers: `wpdbase_user_can_access`, `wpdbase_databases`, `wpdbase_capability`, `wpdbase_max_safety_mode`, `wpdbase_known_plugin_tables`, `wpdbase_audit_table`. See the README on GitHub for examples.
 
 == Frequently Asked Questions ==
 

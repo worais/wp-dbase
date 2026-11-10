@@ -5,6 +5,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+### Added
+- `wpdbase_audit_table` filter: store the audit trail in another table or database (for example one central table for many sites on the same server). An external table is created by the integrator with `AuditLog::create_table_sql()`.
+
 ## [0.1.0] - 2026-11-10
 
 ### Added

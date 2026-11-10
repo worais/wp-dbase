@@ -17,7 +17,9 @@ use wpdb;
 /**
  * Stores who ran what, where, when and with which effect.
  *
- * Lives in the site's own database (base prefix, so one table per network).
+ * By default it lives in the site's own database (base prefix, so one table per
+ * network). The `wpdbase_audit_table` filter can move it, e.g. to one central
+ * table for many sites on the same server.
  */
 final class AuditLog {
 
@@ -31,38 +33,50 @@ final class AuditLog {
 	private const MAX_STATEMENT = 65535;
 
 	/**
+	 * Where entries are written.
+	 *
+	 * @var AuditTarget
+	 */
+	private AuditTarget $target;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param wpdb $wpdb Site connection.
 	 */
 	public function __construct( private readonly wpdb $wpdb ) {
+		$default = $this->wpdb->base_prefix . 'wpdbase_audit';
+
+		/**
+		 * Filters where the audit trail is stored.
+		 *
+		 * Return a table name, or `database.table` for a table in another database
+		 * on the same server (the connection uses the wp-config.php credentials).
+		 * A table other than the default is not created by the plugin: create it
+		 * with the statement from AuditLog::create_table_sql().
+		 *
+		 * @since 0.2.0
+		 *
+		 * @param string $table Default: `{$wpdb->base_prefix}wpdbase_audit`.
+		 */
+		$this->target = AuditTarget::resolve( apply_filters( 'wpdbase_audit_table', $default ), $default );
 	}
 
 	/**
-	 * Audit table name.
+	 * Where entries are written.
 	 */
-	public function table(): string {
-		return $this->wpdb->base_prefix . 'wpdbase_audit';
+	public function target(): AuditTarget {
+		return $this->target;
 	}
 
 	/**
-	 * Create or upgrade the table when the stored schema version differs.
+	 * The CREATE TABLE statement for an audit table (as dbDelta expects it).
 	 *
-	 * Called lazily (first write or first audit read), so it also works when the
-	 * plugin is loaded as a must-use plugin, where activation hooks never run.
+	 * @param string $table   Table reference, already quoted if needed.
+	 * @param string $charset `DEFAULT CHARACTER SET … COLLATE …` clause.
 	 */
-	public function install(): void {
-		if ( self::SCHEMA_VERSION === get_option( self::VERSION_OPTION ) ) {
-			return;
-		}
-
-		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-
-		$charset = $this->wpdb->get_charset_collate();
-		$table   = $this->table();
-
-		dbDelta(
-			"CREATE TABLE {$table} (
+	public static function create_table_sql( string $table, string $charset ): string {
+		return "CREATE TABLE {$table} (
 				id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 				created_at datetime NOT NULL,
 				user_id bigint(20) unsigned NOT NULL DEFAULT 0,
@@ -78,8 +92,24 @@ final class AuditLog {
 				PRIMARY KEY  (id),
 				KEY created_at (created_at),
 				KEY user_id (user_id)
-			) {$charset};"
-		);
+			) {$charset};";
+	}
+
+	/**
+	 * Create or upgrade the table when the stored schema version differs.
+	 *
+	 * Called lazily (first write or first audit read), so it also works when the
+	 * plugin is loaded as a must-use plugin, where activation hooks never run.
+	 */
+	public function install(): void {
+		// An external table belongs to whoever pointed the filter at it.
+		if ( $this->target->external || self::SCHEMA_VERSION === get_option( self::VERSION_OPTION ) ) {
+			return;
+		}
+
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+
+		dbDelta( self::create_table_sql( $this->target->table, $this->wpdb->get_charset_collate() ) );
 
 		update_option( self::VERSION_OPTION, self::SCHEMA_VERSION, false );
 	}
@@ -94,22 +124,31 @@ final class AuditLog {
 
 		$user = wp_get_current_user();
 
-		$this->wpdb->insert(
-			$this->table(),
-			array(
-				'created_at'    => current_time( 'mysql', true ),
-				'user_id'       => (int) $user->ID,
-				'user_login'    => (string) $user->user_login,
-				'ip'            => $this->client_ip(),
-				'database_name' => $entry->database,
-				'safety_mode'   => $entry->mode,
-				'kind'          => $entry->kind,
-				'statement'     => mb_substr( $entry->statement, 0, self::MAX_STATEMENT ),
-				'affected_rows' => $entry->affected_rows,
-				'duration_ms'   => $entry->duration_ms,
-				'error'         => $entry->error,
-			),
-			array( '%s', '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%d', '%s' )
+		// Not wpdb::insert(): it cannot address a table in another database.
+		$this->wpdb->query(
+			Query::prepare(
+				$this->wpdb,
+				'INSERT INTO ' . $this->target->sql() . ' (created_at, user_id, user_login, ip, database_name, safety_mode, kind, statement, affected_rows, duration_ms, error)'
+					. ' VALUES (%s, %d, %s, %s, %s, %s, %s, %s, ' . ( null === $entry->affected_rows ? 'NULL' : '%d' ) . ', %d, ' . ( null === $entry->error ? 'NULL' : '%s' ) . ')',
+				...array_values(
+					array_filter(
+						array(
+							current_time( 'mysql', true ),
+							(int) $user->ID,
+							(string) $user->user_login,
+							$this->client_ip(),
+							$entry->database,
+							$entry->mode,
+							$entry->kind,
+							mb_substr( $entry->statement, 0, self::MAX_STATEMENT ),
+							$entry->affected_rows,
+							$entry->duration_ms,
+							$entry->error,
+						),
+						static fn( $value ): bool => null !== $value
+					)
+				)
+			)
 		);
 	}
 
@@ -123,7 +162,7 @@ final class AuditLog {
 	public function recent( int $limit = 50, int $offset = 0 ): array {
 		$this->install();
 
-		$table = $this->table();
+		$table = $this->target->sql();
 		$rows  = $this->wpdb->get_results(
 			Query::prepare(
 				$this->wpdb,
@@ -141,7 +180,11 @@ final class AuditLog {
 	 * Drop the table and option (uninstall).
 	 */
 	public function uninstall(): void {
-		$this->wpdb->query( 'DROP TABLE IF EXISTS ' . $this->table() ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.SchemaChange -- own table.
+		if ( $this->target->external ) {
+			return;
+		}
+
+		$this->wpdb->query( 'DROP TABLE IF EXISTS ' . $this->target->sql() ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.SchemaChange -- own table.
 		delete_option( self::VERSION_OPTION );
 	}
 

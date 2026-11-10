@@ -59,6 +59,16 @@ add_filter( 'wpdbase_databases', fn( $databases ) => is_main_site() ? '*' : arra
 
 // Recognise your own plugin's tables in the sidebar.
 add_filter( 'wpdbase_known_plugin_tables', fn( array $plugins ) => $plugins + array( 'acme_' => 'Acme CRM' ) );
+
+// Keep one audit trail for many sites on the same server.
+add_filter( 'wpdbase_audit_table', fn() => 'central_db.wp_wpdbase_audit' );
+```
+
+A table moved with `wpdbase_audit_table` is **not** created by the plugin (that would mean writing to
+another database on its own). Create it once, for example with WP-CLI:
+
+```bash
+wp eval 'global $wpdb; $wpdb->query( \WPDBase\Audit\AuditLog::create_table_sql( "`central_db`.`wp_wpdbase_audit`", $wpdb->get_charset_collate() ) );'
 ```
 
 Also available: `wpdbase_capability`, `wpdbase_max_safety_mode`.
