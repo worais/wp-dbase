@@ -4,7 +4,7 @@ Tags: database, sql, mysql, developer, admin
 Requires at least: 6.4
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 0.1.0
+Stable tag: 0.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -108,10 +108,16 @@ It recognises multisite tables (`wp_2_posts`, network tables) and keeps the audi
 
 == Changelog ==
 
+= 0.2.0 =
+* New `wpdbase_audit_table` filter: keep the audit trail in another table or database.
+
 = 0.1.0 =
 * First release: Overview, Explorer with inline editing, Object View with custom meta table detection, SQL console with safety modes and pre-flight, structure and index assessment, audit trail, command palette and dark theme.
 
 == Upgrade Notice ==
+
+= 0.2.0 =
+Adds the wpdbase_audit_table filter. No change for existing installs.
 
 = 0.1.0 =
 First release.

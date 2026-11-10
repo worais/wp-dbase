@@ -5,6 +5,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-10
+
 ### Added
 - `wpdbase_audit_table` filter: store the audit trail in another table or database (for example one central table for many sites on the same server). An external table is created by the integrator with `AuditLog::create_table_sql()`.
 
@@ -22,5 +24,6 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - Extra databases on the same server through `WPDBASE_DATABASES`.
 - Command palette (Ctrl/Cmd+K), dark theme, onboarding.
 
-[Unreleased]: https://github.com/worais/wp-dbase/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/worais/wp-dbase/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/worais/wp-dbase/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/worais/wp-dbase/releases/tag/v0.1.0

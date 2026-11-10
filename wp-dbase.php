@@ -3,7 +3,7 @@
  * Plugin Name:       WP DBase
  * Plugin URI:        https://github.com/worais/wp-dbase
  * Description:       A database manager that speaks WordPress: Object View, SQL console with safety modes, schema and health insight — inside wp-admin.
- * Version:           0.1.0
+ * Version:           0.2.0
  * Requires at least: 6.4
  * Requires PHP:      8.1
  * Author:            Morais Junior

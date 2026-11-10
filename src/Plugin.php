@@ -38,7 +38,7 @@ use wpdb;
  */
 final class Plugin {
 
-	public const VERSION = '0.1.0';
+	public const VERSION = '0.2.0';
 
 	/**
 	 * Singleton guard so a must-use loader and a regular activation never boot twice.
